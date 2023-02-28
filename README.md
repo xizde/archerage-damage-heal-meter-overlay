@@ -7,6 +7,8 @@ ArcheRage Damage/Heal Meter Overlay is a meter that shows damage and healing don
 
 ## Features
 
+![image](https://user-images.githubusercontent.com/126599430/221975388-b2135b5b-7af1-4a6d-9b80-15955bb082d5.png)
+
 - Displays damage and healing done by players in near-real-time
 - Customizable settings, including log file path, overlay width and height, overlay opacity, log type, target name, minutes ago, and log color
 - Minimize button to hide the entire UI of the overlay
