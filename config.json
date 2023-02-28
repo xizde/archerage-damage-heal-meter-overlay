@@ -3,7 +3,7 @@
     "overlayHeight": 270,
     "overlayOpacity": "30",
     "overlayLogColor": "#2fff00",
-    "logFilePath": "C:\\Users\\orlan\\OneDrive\\Documentos\\ArcheRage\\Combat.log",
+    "logFilePath": "C:\\Users\\example\\OneDrive\\Documentos\\ArcheRage\\Combat.log",
     "logMinutesAgo": 1440,
     "targetName": "",
     "logType": "damage"
