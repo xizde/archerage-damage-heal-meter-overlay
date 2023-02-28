@@ -16,7 +16,7 @@ The ArcheRage Game Overlay allows players to monitor data during PVP/PVE battles
 
 To use the ArcheRage Game Overlay, you need to have Python and PyQt5 installed on your computer. Once you have installed these dependencies, you can run the program by executing the following command in your terminal:
 
-python main.py
+python app.py
 
 ## Usage
 
