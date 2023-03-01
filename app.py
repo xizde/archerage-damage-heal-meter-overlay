@@ -1,15 +1,11 @@
 import json
 import re
-from datetime import datetime, timedelta
-from typing import List
 import sys
-from PyQt5.QtWidgets import QComboBox, QColorDialog, QDialog, QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QScrollArea, QGridLayout
+from PyQt5.QtWidgets import QCheckBox, QComboBox, QColorDialog, QDialog, QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QScrollArea, QGridLayout
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QFont
-import re
 from datetime import datetime, timedelta
 from typing import List, Optional
-
 
 DEFAULT_LOG_TYPES = ['damage', 'heal']
 
@@ -24,12 +20,14 @@ OVERLAY_WIDTH = config['overlayWidth'] if config.get('overlayWidth') else 300
 OVERLAY_HEIGHT = config['overlayHeight'] if config.get('overlayWidth') else 300
 OVERLAY_OPACITY = config['overlayOpacity'] if config.get('overlayOpacity') else "30%"
 OVERLAY_LOG_COLOR = config['overlayLogColor'] if config.get('overlayLogColor') else "lime"
+OVERLAY_POSITION = config.get('overlayPosition') if config.get('overlayPosition') else [30, 30]
 
 minimize_state = False
 scrollbar = None
 frame = None
 first_exec = True
 selected_log_color = OVERLAY_LOG_COLOR
+window_mode_state = False
 
 def openColorDialog():
     global selected_log_color
@@ -38,6 +36,16 @@ def openColorDialog():
 
     if color.isValid():
         selected_log_color = color.name()
+        
+def toggle_mode():
+    global window_mode_state
+    
+    if window_mode_state:
+        window_mode_state = False
+        add_frameless_window_hint()
+        return
+    window_mode_state = True
+    remove_frameless_window_hint()
             
 def configure():
     # Use the global variables
@@ -80,12 +88,19 @@ def configure():
     button_color_picker.clicked.connect(openColorDialog)
     button_color_picker.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
 
+    label_change_position = QLabel("Window mode:")
+    change_position_button = QCheckBox("Change")
+    change_position_button.setCheckable(True)
+    change_position_button.clicked.connect(toggle_mode)
+    change_position_button.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
+
     # Create the OK and Cancel buttons
     ok_button = QPushButton("OK")
     ok_button.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
     
     cancel_button = QPushButton("Cancel")
     cancel_button.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
+
 
     # Create a layout for the dialog
     layout = QGridLayout()
@@ -125,10 +140,13 @@ def configure():
     
     layout.addWidget(label_log_color, 8, 0)
     layout.addWidget(button_color_picker, 8, 1)
+    
+    layout.addWidget(label_change_position, 9, 0)
+    layout.addWidget(change_position_button, 9, 1)
 
     # Add the OK and Cancel buttons to the layout
-    layout.addWidget(ok_button, 9, 0)
-    layout.addWidget(cancel_button, 9, 1)
+    layout.addWidget(ok_button, 10, 0)
+    layout.addWidget(cancel_button, 10, 1)
 
     # Set the layout for the dialog
     dialog.setLayout(layout)
@@ -148,7 +166,8 @@ def exit_application():
 
 def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type):
     # Use the global variables
-    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, OVERLAY_HEIGHT, OVERLAY_WIDTH, OVERLAY_OPACITY, OVERLAY_LOG_COLOR, selected_log_color, LOG_TYPE
+    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, OVERLAY_HEIGHT, OVERLAY_WIDTH
+    global OVERLAY_OPACITY, OVERLAY_LOG_COLOR, selected_log_color, LOG_TYPE, OVERLAY_POSITION
 
     # Update the configuration values
     LOG_FILE_PATH = edit_log_path.text()
@@ -159,10 +178,12 @@ def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, ed
     OVERLAY_WIDTH = int(edit_overlay_width.text())
     OVERLAY_OPACITY = edit_overlay_opacity.text()
     OVERLAY_LOG_COLOR = selected_log_color
+    OVERLAY_POSITION = [window.pos().x(), window.pos().y()] if window.pos() else OVERLAY_POSITION
     
     # Save new settings
     with open('config.json', 'w') as f:
         config = json.dumps({
+            "overlayPosition": OVERLAY_POSITION,
             "overlayWidth": OVERLAY_WIDTH,
             "overlayHeight": OVERLAY_HEIGHT,
             "overlayOpacity": OVERLAY_OPACITY,
@@ -249,10 +270,12 @@ def update_overlay():
         minimize_state = True
         first_exec = False
         
+    window.move(OVERLAY_POSITION[0], OVERLAY_POSITION[1])
+        
     if not minimize_state:    
         QTimer.singleShot(10, update_overlay)  # update every minute
     else:
-        window.setGeometry(0, 0, OVERLAY_WIDTH, OVERLAY_HEIGHT)
+        window.resize(OVERLAY_WIDTH, OVERLAY_HEIGHT)
         
         # Extract damage / heal based on config LOG_TYPE
         if LOG_TYPE == "damage":
@@ -318,7 +341,7 @@ def minimize_maximize_overlay():
         config_button.setVisible(not minimize_state)
         minimize_button.setVisible(not minimize_state)
         maximize_button.setVisible(True)
-        window.setGeometry(0, 0, 20, 20)
+        window.resize(20, 20)
         minimize_state = False
     elif not minimize_state:   
         # Restore the previous window geometry
@@ -336,17 +359,27 @@ def minimize_maximize_overlay():
     # Update the overlay
     update_overlay()
         
+def remove_frameless_window_hint():
+    global window
+    flags = window.windowFlags()
+    flags &= ~Qt.FramelessWindowHint
+    window.setWindowFlags(flags)
+    window.show()
+    
+def add_frameless_window_hint():
+    global window
+    window.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+    window.show()
 
 # Create the GUI window
 app = QApplication(sys.argv)
 
 window = QWidget()
-window.setGeometry(0, 0, OVERLAY_WIDTH, OVERLAY_HEIGHT)
+window.setGeometry(30, 30, OVERLAY_WIDTH, OVERLAY_HEIGHT)
 previous_geometry = window.geometry()
 window.setWindowTitle("ArcheRage - Damage/Heal Meter")
 
 window.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
-
 window.setAttribute(Qt.WA_NoSystemBackground, True)
 window.setAttribute(Qt.WA_TranslucentBackground, True)
 
@@ -406,4 +439,6 @@ QTimer.singleShot(0, update_overlay)
 
 # Show the window and start the event loop
 window.show()
+add_frameless_window_hint()
+
 sys.exit(app.exec_())
