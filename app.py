@@ -22,6 +22,7 @@ OVERLAY_OPACITY = config['overlayOpacity'] if config.get('overlayOpacity') else 
 OVERLAY_LOG_COLOR = config['overlayLogColor'] if config.get('overlayLogColor') else "lime"
 OVERLAY_POSITION = config.get('overlayPosition') if config.get('overlayPosition') else [30, 30]
 
+initial_time_filter = ""
 minimize_state = False
 scrollbar = None
 frame = None
@@ -46,10 +47,16 @@ def toggle_mode():
         return
     window_mode_state = True
     remove_frameless_window_hint()
+    
+def set_time_toggle():
+    global initial_time_filter
+    initial_time_filter = datetime.now()
+    # Update the overlay
+    update_overlay()
             
 def configure():
     # Use the global variables
-    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, DEFAULT_LOG_TYPES
+    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, DEFAULT_LOG_TYPES, config_window_state, initial_time_filter
 
     # Create a dialog to ask for the configuration values
     dialog = QDialog()
@@ -74,6 +81,9 @@ def configure():
 
     label_target_name = QLabel("Target name:")
     edit_target_name = QLineEdit(TARGET_NAME)
+    
+    label_initial_time = QLabel("Initial time filter:")
+    edit_initial_time = QLineEdit(str(initial_time_filter))
 
     label_minutes_ago = QLabel("Minutes ago:")
     edit_minutes_ago = QLineEdit(str(LOG_TIME))
@@ -134,19 +144,22 @@ def configure():
 
     layout.addWidget(label_target_name, 6, 0)
     layout.addWidget(edit_target_name, 6, 1)
+    
+    layout.addWidget(label_initial_time, 7, 0)
+    layout.addWidget(edit_initial_time, 7, 1)
 
-    layout.addWidget(label_minutes_ago, 7, 0)
-    layout.addWidget(edit_minutes_ago, 7, 1)
+    layout.addWidget(label_minutes_ago, 8, 0)
+    layout.addWidget(edit_minutes_ago, 8, 1)
     
-    layout.addWidget(label_log_color, 8, 0)
-    layout.addWidget(button_color_picker, 8, 1)
+    layout.addWidget(label_log_color, 9, 0)
+    layout.addWidget(button_color_picker, 9, 1)
     
-    layout.addWidget(label_change_position, 9, 0)
-    layout.addWidget(change_position_button, 9, 1)
+    layout.addWidget(label_change_position, 10, 0)
+    layout.addWidget(change_position_button, 10, 1)
 
     # Add the OK and Cancel buttons to the layout
-    layout.addWidget(ok_button, 10, 0)
-    layout.addWidget(cancel_button, 10, 1)
+    layout.addWidget(ok_button, 11, 0)
+    layout.addWidget(cancel_button, 11, 1)
 
     # Set the layout for the dialog
     dialog.setLayout(layout)
@@ -155,7 +168,7 @@ def configure():
     ok_button.setFocus()
 
     # Connect the OK and Cancel buttons to their respective functions
-    ok_button.clicked.connect(lambda: apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type.currentText()))
+    ok_button.clicked.connect(lambda: apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type.currentText(), edit_initial_time))
     cancel_button.clicked.connect(dialog.reject)
 
     # Show the dialog
@@ -164,10 +177,10 @@ def configure():
 def exit_application():
     app.quit()
 
-def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type):
+def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type, edit_initial_time):
     # Use the global variables
-    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, OVERLAY_HEIGHT, OVERLAY_WIDTH
-    global OVERLAY_OPACITY, OVERLAY_LOG_COLOR, selected_log_color, LOG_TYPE, OVERLAY_POSITION
+    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, OVERLAY_HEIGHT, OVERLAY_WIDTH, config_window_state
+    global OVERLAY_OPACITY, OVERLAY_LOG_COLOR, selected_log_color, LOG_TYPE, OVERLAY_POSITION, initial_time_filter
 
     # Update the configuration values
     LOG_FILE_PATH = edit_log_path.text()
@@ -180,6 +193,9 @@ def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, ed
     OVERLAY_LOG_COLOR = selected_log_color
     OVERLAY_POSITION = [window.pos().x(), window.pos().y()] if window.pos() else OVERLAY_POSITION
     
+    if not edit_initial_time.text():
+        initial_time_filter = None
+        
     # Save new settings
     with open('config.json', 'w') as f:
         config = json.dumps({
@@ -206,15 +222,20 @@ def update_widgets_opacity():
     exit_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
     minimize_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
     scroll_area.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
-    
+    maximize_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
     
 def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None) -> List[dict]:
     # Compile regex pattern
     pattern = re.compile(r"\[(?P<log_time_str>.*?)\] (?P<character>.*?)\|r attacked (?P<receiver>.*?)\|r using.*\|cffff0000\-(?P<total>\d+)")
 
     # Calculate time range
+    minutes_ago_time = timedelta(minutes=minutes_ago)
     end_time = datetime.now()
-    start_time = end_time - timedelta(minutes=minutes_ago)
+    if initial_time_filter:
+        start_time = initial_time_filter
+    else:
+        start_time = end_time - minutes_ago_time
+        
 
     # Use generator expression to yield attack data
     with open(log_file_path, "r", encoding="utf8") as f:
@@ -263,14 +284,15 @@ def format_number(n) -> str:
 def update_overlay():
     # Use the global variables
     global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, scroll_content_layout, minimize_state, previous_geometry
-    global first_exec, LOG_TYPE
+    global first_exec, LOG_TYPE, window_mode_state
     update_widgets_opacity()
     
     if first_exec:
         minimize_state = True
         first_exec = False
-        
-    window.move(OVERLAY_POSITION[0], OVERLAY_POSITION[1])
+       
+    if not window_mode_state:     
+        window.move(OVERLAY_POSITION[0], OVERLAY_POSITION[1])
         
     if not minimize_state:    
         QTimer.singleShot(10, update_overlay)  # update every minute
@@ -329,7 +351,7 @@ def update_overlay():
         QTimer.singleShot(10000, update_overlay)  # update every minute
 
 def minimize_maximize_overlay():
-    global window, minimize_state, scroll_area, previous_geometry, exit_button, config_button, minimize_button, maximize_button
+    global window, minimize_state, scroll_area, previous_geometry, exit_button, config_button, minimize_button, maximize_button, reset_log_button
     
     if minimize_state:
         # Save the previous window geometry
@@ -340,6 +362,7 @@ def minimize_maximize_overlay():
         exit_button.setVisible(not minimize_state)
         config_button.setVisible(not minimize_state)
         minimize_button.setVisible(not minimize_state)
+        reset_log_button.setVisible(not minimize_state)
         maximize_button.setVisible(True)
         window.resize(20, 20)
         minimize_state = False
@@ -353,6 +376,7 @@ def minimize_maximize_overlay():
         exit_button.setVisible(not minimize_state)
         config_button.setVisible(not minimize_state)
         minimize_button.setVisible(not minimize_state)
+        reset_log_button.setVisible(not minimize_state)
         maximize_button.setVisible(False)
         minimize_state = True
     
@@ -388,28 +412,35 @@ layout = QVBoxLayout()
 window.setLayout(layout)
 
 # Create a horizontal layout for the buttons
-button_layout = QHBoxLayout()
+button_layout = QGridLayout()
 
 # Create the Configuration button
 minimize_button = QPushButton("-")
 minimize_button.setFont(QFont('Roboto', 8))
 minimize_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
 minimize_button.clicked.connect(minimize_maximize_overlay)
-button_layout.addWidget(minimize_button)
+button_layout.addWidget(minimize_button, 0,0)
+
+# Create the Configuration button
+reset_log_button = QPushButton("Set time")
+reset_log_button.setFont(QFont('Roboto', 8))
+reset_log_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
+reset_log_button.clicked.connect(set_time_toggle)
+button_layout.addWidget(reset_log_button, 0,1)
 
 # Create the Exit button
 exit_button = QPushButton("Exit")
 exit_button.setFont(QFont('Roboto', 8))
 exit_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
 exit_button.clicked.connect(exit_application)
-button_layout.addWidget(exit_button)
+button_layout.addWidget(exit_button, 1,0)
 
 # Create the Configuration button
 config_button = QPushButton("Settings")
 config_button.setFont(QFont('Roboto', 8))
 config_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
 config_button.clicked.connect(configure)
-button_layout.addWidget(config_button)
+button_layout.addWidget(config_button, 1,1)
 
 # Add the button layout to the main layout
 layout.addLayout(button_layout)
