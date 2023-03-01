@@ -30,7 +30,7 @@ The ArcheRage Game Overlay allows players to monitor data during PVP/PVE battles
 
 ## Installation
 
-To use the ArcheRage Game Overlay, you just need to set up the config.json "logFilePath" to your log location and execute the app.exe.
+To use the ArcheRage Game Overlay, you just need to set up the config.json "logFilePath" variable to your log location and then execute the app.exe.
 
 ## Usage
 
