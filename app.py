@@ -252,8 +252,15 @@ def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: 
 
 def extract_heal_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None) -> List[dict]:
     pattern = re.compile(r"\[(?P<log_time_str>[^\]]+)\]\s(?P<character>[^|]+)\|r\stargeted\s(?P<receiver>[^|]+)\|[^|]+\|cff25fcff(?P<ability>[^|]+)\|[^|]+\|cff00ff00(?P<restored>[^|]+)\|r\shealth.")
+    
+    # Calculate time range
+    minutes_ago_time = timedelta(minutes=minutes_ago)
     end_time = datetime.now()
-    start_time = end_time - timedelta(minutes=minutes_ago)
+    if initial_time_filter:
+        start_time = initial_time_filter
+    else:
+        start_time = end_time - minutes_ago_time
+    
     with open(log_file_path, "r", encoding="utf8") as f:
         yield from (
             {"timestamp": log_time_str, "character": character, "target": receiver, "total": total}
