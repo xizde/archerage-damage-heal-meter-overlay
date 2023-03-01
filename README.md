@@ -7,6 +7,8 @@ ArcheRage Damage/Heal Meter Overlay is a meter that shows damage and healing don
 ![Overlay main-window filtring damage](https://user-images.githubusercontent.com/126599430/221931325-5e8314a2-1f90-46fb-a8ec-53d1b1065d44.png)
 ![Overlay main-window filtring heal](https://user-images.githubusercontent.com/126599430/221931361-fd205a4c-2c13-4319-a4df-ec160cda54f7.png)
 
+![overlay](https://user-images.githubusercontent.com/126599430/222025011-647d57e8-8da1-4488-9a76-8cdd17085da0.png)
+
 ## Features
 
 ![image](https://user-images.githubusercontent.com/126599430/221975388-b2135b5b-7af1-4a6d-9b80-15955bb082d5.png)
