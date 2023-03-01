@@ -1,5 +1,7 @@
 # ArcheRage Damage/Heal Meter Overlay
 
+![aesthetic overlay image](https://user-images.githubusercontent.com/126599430/222024598-1bf74aa2-4f6d-4d37-a9ed-c1d14f083727.png)
+
 ArcheRage Damage/Heal Meter Overlay is a meter that shows damage and healing done by players from game logs. It was developed in Python using PyQt5 to create the interface.
 
 ![Overlay main-window filtring damage](https://user-images.githubusercontent.com/126599430/221931325-5e8314a2-1f90-46fb-a8ec-53d1b1065d44.png)
