@@ -13,14 +13,17 @@ with open('config.json', 'r') as f:
     config = json.load(f)
 
 LOG_FILE_PATH = config['logFilePath']
-LOG_TIME = config['logMinutesAgo']
-LOG_TYPE = config.get('logType')
+LOG_TIME = config.get('logMinutesAgo') if config.get('logMinutesAgo') else 60
+LOG_TYPE = config.get('logType') if config.get('logType') else "damage"
 TARGET_NAME = config.get('targetName')
 OVERLAY_WIDTH = config['overlayWidth'] if config.get('overlayWidth') else 300
 OVERLAY_HEIGHT = config['overlayHeight'] if config.get('overlayWidth') else 300
 OVERLAY_OPACITY = config['overlayOpacity'] if config.get('overlayOpacity') else "30%"
 OVERLAY_LOG_COLOR = config['overlayLogColor'] if config.get('overlayLogColor') else "lime"
 OVERLAY_POSITION = config.get('overlayPosition') if config.get('overlayPosition') else [30, 30]
+OVERLAY_FONT_SIZE =  config.get('overlayFontSize') if config.get('overlayFontSize') else 20
+OVERLAY_LOGS_FONT_SIZE =  config.get('overlayLogsFontSize') if config.get('overlayLogsFontSize') else 10
+
 
 initial_time_filter = ""
 minimize_state = False
@@ -56,15 +59,15 @@ def set_time_toggle():
             
 def configure():
     # Use the global variables
-    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, DEFAULT_LOG_TYPES, config_window_state, initial_time_filter
+    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, DEFAULT_LOG_TYPES, config_window_state, initial_time_filter, OVERLAY_FONT_SIZE, OVERLAY_LOGS_FONT_SIZE
 
     # Create a dialog to ask for the configuration values
     dialog = QDialog()
     dialog.setWindowFlags(Qt.FramelessWindowHint)
     dialog.setWindowTitle("Settings")
     dialog.setMinimumWidth(300)
-    dialog.setFont(QFont('Roboto', 10))
-    dialog.setStyleSheet(f"color: white; background-color: rgba( 0, 0, 0, 10%  );")
+    dialog.setFont(QFont('Roboto', OVERLAY_FONT_SIZE))
+    dialog.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;color: white; background-color: rgba( 0, 0, 0, 10%  );")
 
     # Create the labels and line edits for the configuration values
     label_log_path = QLabel("Log file path:")
@@ -75,6 +78,12 @@ def configure():
     
     label_overlay_height = QLabel("Overlay height:")
     edit_overlay_height = QLineEdit(str(OVERLAY_HEIGHT))
+    
+    label_overlay_font_size = QLabel("Overlay font size:")
+    edit_overlay_font_size = QLineEdit(str(OVERLAY_FONT_SIZE))
+    
+    label_overlay_logs_font_size = QLabel("Overlay logs font size:")
+    edit_overlay_logs_font_size = QLineEdit(str(OVERLAY_LOGS_FONT_SIZE))
     
     label_overlay_opacity = QLabel("Overlay opacity %:")
     edit_overlay_opacity = QLineEdit(str(OVERLAY_OPACITY))
@@ -91,25 +100,25 @@ def configure():
     label_log_type = QLabel("Log type:")
     combobox_log_type = QComboBox()
     combobox_log_type.addItems(DEFAULT_LOG_TYPES)
-    combobox_log_type.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
+    combobox_log_type.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;color: black; background-color: rgba( 255, 255, 255, 50%  );")
     
     label_log_color = QLabel("Log color:")
     button_color_picker = QPushButton('Select color')
     button_color_picker.clicked.connect(openColorDialog)
-    button_color_picker.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
+    button_color_picker.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;color: black; background-color: rgba( 255, 255, 255, 50%  );")
 
     label_change_position = QLabel("Window mode:")
     change_position_button = QCheckBox("Change")
     change_position_button.setCheckable(True)
     change_position_button.clicked.connect(toggle_mode)
-    change_position_button.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
+    change_position_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;color: black; background-color: rgba( 255, 255, 255, 50%  );")
 
     # Create the OK and Cancel buttons
     ok_button = QPushButton("OK")
-    ok_button.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
+    ok_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;color: black; background-color: rgba( 255, 255, 255, 50%  );")
     
     cancel_button = QPushButton("Cancel")
-    cancel_button.setStyleSheet(f"color: black; background-color: rgba( 255, 255, 255, 50%  );")
+    cancel_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;color: black; background-color: rgba( 255, 255, 255, 50%  );")
 
 
     # Create a layout for the dialog
@@ -122,7 +131,7 @@ def configure():
     
     # Create a label for the "by Xizde" text
     by_label = QLabel("by Xizde")
-    by_label.setStyleSheet(f"color: {OVERLAY_LOG_COLOR};")
+    by_label.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;color: {OVERLAY_LOG_COLOR};")
     by_label.setAlignment(Qt.AlignRight)
     layout.addWidget(by_label, 0, 1)
 
@@ -136,30 +145,36 @@ def configure():
     layout.addWidget(label_overlay_height, 3, 0)
     layout.addWidget(edit_overlay_height, 3, 1)
     
-    layout.addWidget(label_overlay_opacity, 4, 0)
-    layout.addWidget(edit_overlay_opacity, 4, 1)  
+    layout.addWidget(label_overlay_font_size, 4, 0)
+    layout.addWidget(edit_overlay_font_size, 4, 1)  
+    
+    layout.addWidget(label_overlay_logs_font_size, 5, 0)
+    layout.addWidget(edit_overlay_logs_font_size, 5, 1)  
+    
+    layout.addWidget(label_overlay_opacity, 6, 0)
+    layout.addWidget(edit_overlay_opacity, 6, 1)  
       
-    layout.addWidget(label_log_type, 5, 0)
-    layout.addWidget(combobox_log_type, 5, 1)
+    layout.addWidget(label_log_type, 7, 0)
+    layout.addWidget(combobox_log_type, 7, 1)
 
-    layout.addWidget(label_target_name, 6, 0)
-    layout.addWidget(edit_target_name, 6, 1)
+    layout.addWidget(label_target_name, 8, 0)
+    layout.addWidget(edit_target_name, 8, 1)
     
-    layout.addWidget(label_initial_time, 7, 0)
-    layout.addWidget(edit_initial_time, 7, 1)
+    layout.addWidget(label_initial_time, 9, 0)
+    layout.addWidget(edit_initial_time, 9, 1)
 
-    layout.addWidget(label_minutes_ago, 8, 0)
-    layout.addWidget(edit_minutes_ago, 8, 1)
+    layout.addWidget(label_minutes_ago, 10, 0)
+    layout.addWidget(edit_minutes_ago, 10, 1)
     
-    layout.addWidget(label_log_color, 9, 0)
-    layout.addWidget(button_color_picker, 9, 1)
+    layout.addWidget(label_log_color, 11, 0)
+    layout.addWidget(button_color_picker, 11, 1)
     
-    layout.addWidget(label_change_position, 10, 0)
-    layout.addWidget(change_position_button, 10, 1)
+    layout.addWidget(label_change_position, 12, 0)
+    layout.addWidget(change_position_button, 12, 1)
 
     # Add the OK and Cancel buttons to the layout
-    layout.addWidget(ok_button, 11, 0)
-    layout.addWidget(cancel_button, 11, 1)
+    layout.addWidget(ok_button, 13, 0)
+    layout.addWidget(cancel_button, 13, 1)
 
     # Set the layout for the dialog
     dialog.setLayout(layout)
@@ -168,7 +183,7 @@ def configure():
     ok_button.setFocus()
 
     # Connect the OK and Cancel buttons to their respective functions
-    ok_button.clicked.connect(lambda: apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type.currentText(), edit_initial_time))
+    ok_button.clicked.connect(lambda: apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type.currentText(), edit_initial_time, edit_overlay_font_size, edit_overlay_logs_font_size))
     cancel_button.clicked.connect(dialog.reject)
 
     # Show the dialog
@@ -177,10 +192,11 @@ def configure():
 def exit_application():
     app.quit()
 
-def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type, edit_initial_time):
+def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, edit_overlay_width, edit_overlay_height, edit_overlay_opacity, combobox_log_type, edit_initial_time, edit_overlay_font_size, edit_overlay_logs_font_size):
     # Use the global variables
-    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, OVERLAY_HEIGHT, OVERLAY_WIDTH, config_window_state
+    global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, OVERLAY_HEIGHT, OVERLAY_WIDTH, OVERLAY_FONT_SIZE
     global OVERLAY_OPACITY, OVERLAY_LOG_COLOR, selected_log_color, LOG_TYPE, OVERLAY_POSITION, initial_time_filter
+    global OVERLAY_LOGS_FONT_SIZE
 
     # Update the configuration values
     LOG_FILE_PATH = edit_log_path.text()
@@ -192,6 +208,8 @@ def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, ed
     OVERLAY_OPACITY = edit_overlay_opacity.text()
     OVERLAY_LOG_COLOR = selected_log_color
     OVERLAY_POSITION = [window.pos().x(), window.pos().y()] if window.pos() else OVERLAY_POSITION
+    OVERLAY_FONT_SIZE = int(edit_overlay_font_size.text()) if edit_overlay_font_size.text() else OVERLAY_FONT_SIZE
+    OVERLAY_LOGS_FONT_SIZE = int(edit_overlay_logs_font_size.text()) if edit_overlay_logs_font_size.text() else OVERLAY_LOGS_FONT_SIZE
     
     if not edit_initial_time.text():
         initial_time_filter = None
@@ -202,6 +220,8 @@ def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, ed
             "overlayPosition": OVERLAY_POSITION,
             "overlayWidth": OVERLAY_WIDTH,
             "overlayHeight": OVERLAY_HEIGHT,
+            "overlayFontSize": OVERLAY_FONT_SIZE,
+            "overlayLogsFontSize": OVERLAY_LOGS_FONT_SIZE,
             "overlayOpacity": OVERLAY_OPACITY,
             "overlayLogColor": OVERLAY_LOG_COLOR,
             "logFilePath": LOG_FILE_PATH,
@@ -218,11 +238,15 @@ def apply_settings(dialog, edit_log_path, edit_target_name, edit_minutes_ago, ed
 def update_widgets_opacity():
     global exit_button, config_button, minimize_button, previous_geometry, scroll_area
     
-    config_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
-    exit_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
-    minimize_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
-    scroll_area.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
-    maximize_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
+    # window buttons
+    config_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
+    exit_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
+    minimize_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
+    maximize_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
+    reset_log_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
+    # scroll area
+    scroll_area.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
+    
     
 def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None) -> List[dict]:
     # Compile regex pattern
@@ -291,7 +315,7 @@ def format_number(n) -> str:
 def update_overlay():
     # Use the global variables
     global LOG_FILE_PATH, TARGET_NAME, LOG_TIME, scroll_content_layout, minimize_state, previous_geometry
-    global first_exec, LOG_TYPE, window_mode_state
+    global first_exec, LOG_TYPE, window_mode_state, OVERLAY_FONT_SIZE
     update_widgets_opacity()
     
     if first_exec:
@@ -300,6 +324,8 @@ def update_overlay():
        
     if not window_mode_state:     
         window.move(OVERLAY_POSITION[0], OVERLAY_POSITION[1])
+        
+    #window.setFont(QFont('Roboto', OVERLAY_FONT_SIZE))
         
     if not minimize_state:    
         QTimer.singleShot(10, update_overlay)  # update every minute
@@ -338,17 +364,19 @@ def update_overlay():
             label_attacker = QLabel(str(f'{i} {attacker}'))
             if attacker == 'Rank - Name':
                 label_attacker = QLabel(str(attacker))
-                label_attacker.setStyleSheet(f"color: white; background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  );")
+                label_attacker.setFont(QFont('Roboto', OVERLAY_LOGS_FONT_SIZE))
+                label_attacker.setStyleSheet(f"font-family: 'Roboto'; font-size: {OVERLAY_LOGS_FONT_SIZE}px;color: white; background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  );")
             else:
-                label_attacker.setStyleSheet(f"color: {OVERLAY_LOG_COLOR}; background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  );")
-            label_attacker.setFont(QFont('Roboto', 10))
+                label_attacker.setFont(QFont('Roboto', OVERLAY_LOGS_FONT_SIZE))
+                label_attacker.setStyleSheet(f"font-family: 'Roboto'; font-size: {OVERLAY_LOGS_FONT_SIZE}px;color: {OVERLAY_LOG_COLOR}; background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  );")
+
             
             label_total = QLabel(format_number(total))
-            label_total.setFont(QFont('Roboto', 10))
+            label_total.setFont(QFont('Roboto', OVERLAY_LOGS_FONT_SIZE))
             if str(total).lower() in DEFAULT_LOG_TYPES:
-                label_total.setStyleSheet(f"color: white; background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  );")
+                label_total.setStyleSheet(f"font-family: 'Roboto'; font-size: {OVERLAY_LOGS_FONT_SIZE}px;color: white; background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  );")
             else:
-                label_total.setStyleSheet(f"color: {OVERLAY_LOG_COLOR}; background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  );")
+                label_total.setStyleSheet(f"font-family: 'Roboto'; font-size: {OVERLAY_LOGS_FONT_SIZE}px;color: {OVERLAY_LOG_COLOR}; background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  );")
                 
             scroll_content_layout.addWidget(label_attacker, i, 0)
             scroll_content_layout.addWidget(label_total, i, 1)
@@ -424,28 +452,28 @@ button_layout = QGridLayout()
 # Create the Configuration button
 minimize_button = QPushButton("-")
 minimize_button.setFont(QFont('Roboto', 8))
-minimize_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
+minimize_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
 minimize_button.clicked.connect(minimize_maximize_overlay)
 button_layout.addWidget(minimize_button, 0,0)
 
 # Create the Configuration button
 reset_log_button = QPushButton("Set time")
 reset_log_button.setFont(QFont('Roboto', 8))
-reset_log_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
+reset_log_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
 reset_log_button.clicked.connect(set_time_toggle)
 button_layout.addWidget(reset_log_button, 0,1)
 
 # Create the Exit button
 exit_button = QPushButton("Exit")
 exit_button.setFont(QFont('Roboto', 8))
-exit_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
+exit_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
 exit_button.clicked.connect(exit_application)
 button_layout.addWidget(exit_button, 1,0)
 
 # Create the Configuration button
 config_button = QPushButton("Settings")
 config_button.setFont(QFont('Roboto', 8))
-config_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
+config_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
 config_button.clicked.connect(configure)
 button_layout.addWidget(config_button, 1,1)
 
@@ -455,7 +483,7 @@ layout.addLayout(button_layout)
 # Create the Configuration button
 maximize_button = QPushButton("+")
 maximize_button.setFont(QFont('Roboto', 8))
-maximize_button.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
+maximize_button.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY if int(OVERLAY_OPACITY) > 0 else 1}%  ); color: white;" );
 maximize_button.clicked.connect(minimize_maximize_overlay)
 maximize_button.setVisible(False)
 layout.addWidget(maximize_button)
@@ -465,7 +493,7 @@ scroll_area = QScrollArea()
 scroll_content = QWidget()
 scroll_content_layout = QGridLayout()
 scroll_content.setLayout(scroll_content_layout)
-scroll_area.setStyleSheet(f"background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}% );" );
+scroll_area.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}% );" );
 
 scroll_area.setWidget(scroll_content)
 scroll_area.setWidgetResizable(True)

@@ -5,10 +5,12 @@
     ],
     "overlayWidth": 330,
     "overlayHeight": 270,
+    "overlayFontSize": 14,
+    "overlayLogsFontSize": 12,
     "overlayOpacity": "7",
     "overlayLogColor": "#ff55ff",
     "logFilePath": "C:\\Users\\orlan\\OneDrive\\Documentos\\ArcheRage\\Combat.log",
     "logMinutesAgo": 10,
     "targetName": "",
-    "logType": "heal"
+    "logType": "damage"
 }
