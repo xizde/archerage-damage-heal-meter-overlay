@@ -63,7 +63,7 @@ def configure():
 
     # Create a dialog to ask for the configuration values
     dialog = QDialog()
-    dialog.setWindowFlags(Qt.FramelessWindowHint)
+    dialog.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
     dialog.setWindowTitle("Settings")
     dialog.setMinimumWidth(300)
     dialog.setFont(QFont('Roboto', OVERLAY_FONT_SIZE))
