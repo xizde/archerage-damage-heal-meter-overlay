@@ -1,7 +1,7 @@
 {
     "overlayPosition": [
-        -2,
-        34
+        0,
+        1
     ],
     "overlayWidth": 330,
     "overlayHeight": 270,
@@ -12,5 +12,5 @@
     "logFilePath": "C:\\Users\\orlan\\OneDrive\\Documentos\\ArcheRage\\Combat.log",
     "logMinutesAgo": 10,
     "targetName": "",
-    "logType": "damage"
+    "logType": "heal"
 }

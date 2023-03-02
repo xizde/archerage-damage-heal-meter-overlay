@@ -101,6 +101,8 @@ def configure():
     combobox_log_type = QComboBox()
     combobox_log_type.addItems(DEFAULT_LOG_TYPES)
     combobox_log_type.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;color: black; background-color: rgba( 255, 255, 255, 50%  );")
+    if LOG_TYPE == 'heal':
+        combobox_log_type.setCurrentIndex(1)
     
     label_log_color = QLabel("Log color:")
     button_color_picker = QPushButton('Select color')
@@ -429,6 +431,11 @@ def add_frameless_window_hint():
     global window
     window.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
     window.show()
+
+
+# enable high DPI scaling
+QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
 # Create the GUI window
 app = QApplication(sys.argv)
