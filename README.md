@@ -1,3 +1,7 @@
+support me
+buy me a coffe ☕
+https://bmc.link/Xizde
+
 # ArcheRage Damage/Heal Meter Overlay
 
 ![aesthetic overlay image](https://user-images.githubusercontent.com/126599430/222024598-1bf74aa2-4f6d-4d37-a9ed-c1d14f083727.png)
