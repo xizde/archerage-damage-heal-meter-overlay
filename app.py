@@ -1,7 +1,8 @@
 import json
+import os
 import re
 import sys
-from PyQt5.QtWidgets import QCheckBox, QComboBox, QColorDialog, QDialog, QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QScrollArea, QGridLayout
+from PyQt5.QtWidgets import QMessageBox, QCheckBox, QComboBox, QColorDialog, QDialog, QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QScrollArea, QGridLayout
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QFont
 from datetime import datetime, timedelta
@@ -11,6 +12,19 @@ DEFAULT_LOG_TYPES = ['damage', 'heal']
 
 with open('config.json', 'r') as f:
     config = json.load(f)
+    
+# Check if the log file exists
+if not os.path.exists(config['logFilePath']):
+    app = QApplication(sys.argv)
+    error_message = f"Log file '{config['logFilePath']}' does not exist. Check the logFilePath value in config.json file and fix it before running."
+    # Create a QMessageBox to display the error message
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setText("Error")
+    msg.setInformativeText(error_message)
+    msg.setWindowTitle("Configuration Error")
+    msg.exec_()
+    sys.exit(1)
 
 LOG_FILE_PATH = config['logFilePath']
 LOG_TIME = config.get('logMinutesAgo') if config.get('logMinutesAgo') else 60
@@ -250,9 +264,9 @@ def update_widgets_opacity():
     scroll_area.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
     
     
-def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None) -> List[dict]:
+def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None):
     # Compile regex pattern
-    pattern = re.compile(r"\[(?P<log_time_str>.*?)\] (?P<character>.*?)\|r attacked (?P<receiver>.*?)\|r using.*\|cffff0000\-(?P<total>\d+)")
+    pattern = re.compile(r"<(?P<log_time_str>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?P<character>.*?)\|r attacked (?P<receiver>.*?)\|r using \|cff25fcff(.*?)\|r and caused \|cffff0000\-(?P<total>\d+)|")
 
     # Calculate time range
     minutes_ago_time = timedelta(minutes=minutes_ago)
@@ -271,14 +285,15 @@ def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: 
             if "attacked" in line
             for match in [pattern.search(line)]
             if match
-            for log_time_str, character, receiver, total in [match.groups()]
-            if start_time <= datetime.strptime(log_time_str, "%m/%d/%y %H:%M:%S") <= end_time
+            for log_time_str, character, receiver, _, total in [match.groups()] 
+            if log_time_str is not None
+            if start_time <= datetime.strptime(log_time_str, "%Y-%m-%d %H:%M:%S") <= end_time
             if not target_name or receiver == target_name
         )
 
-def extract_heal_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None) -> List[dict]:
-    pattern = re.compile(r"\[(?P<log_time_str>[^\]]+)\]\s(?P<character>[^|]+)\|r\stargeted\s(?P<receiver>[^|]+)\|[^|]+\|cff25fcff(?P<ability>[^|]+)\|[^|]+\|cff00ff00(?P<restored>[^|]+)\|r\shealth.")
-    
+def extract_heal_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None):
+    pattern = re.compile(r"<(?P<log_time_str>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?P<character>.*?)\|r targeted (?P<receiver>[^|]+)\|[^|]+\|cff25fcff(?P<ability>[^|]+)\|[^|]+\|cff00ff00(?P<restored>[^|]+)\|r health.")
+
     # Calculate time range
     minutes_ago_time = timedelta(minutes=minutes_ago)
     end_time = datetime.now()
@@ -295,7 +310,8 @@ def extract_heal_data(log_file_path: str, minutes_ago: int = 60, target_name: Op
             for match in [pattern.search(line)]
             if match
             for log_time_str, character, receiver, _, total in [match.groups()]
-            if start_time <= datetime.strptime(log_time_str, "%m/%d/%y %H:%M:%S",) <= end_time
+            if log_time_str is not None
+            if start_time <= datetime.strptime(log_time_str, "%Y-%m-%d %H:%M:%S",) <= end_time
             if not target_name or receiver == target_name
         )
         
