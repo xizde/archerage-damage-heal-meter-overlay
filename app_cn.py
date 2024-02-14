@@ -1,7 +1,8 @@
 import json
 import re
 import sys
-from PyQt5.QtWidgets import QCheckBox, QComboBox, QColorDialog, QDialog, QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QScrollArea, QGridLayout
+import os
+from PyQt5.QtWidgets import QMessageBox, QCheckBox, QComboBox, QColorDialog, QDialog, QApplication, QWidget, QLabel, QLineEdit, QVBoxLayout, QHBoxLayout, QPushButton, QScrollArea, QGridLayout
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QFont
 from datetime import datetime, timedelta
@@ -11,6 +12,19 @@ DEFAULT_LOG_TYPES = ['damage', 'heal']
 
 with open('config.json', 'r') as f:
     config = json.load(f)
+    
+# Check if the log file exists
+if not os.path.exists(config['logFilePath']):
+    app = QApplication(sys.argv)
+    error_message = f"Log file '{config['logFilePath']}' does not exist. Check the logFilePath value in config.json file and fix it before running."
+    # Create a QMessageBox to display the error message
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Critical)
+    msg.setText("Error")
+    msg.setInformativeText(error_message)
+    msg.setWindowTitle("Configuration Error")
+    msg.exec_()
+    sys.exit(1)
 
 LOG_FILE_PATH = config['logFilePath']
 LOG_TIME = config.get('logMinutesAgo') if config.get('logMinutesAgo') else 60
@@ -250,10 +264,10 @@ def update_widgets_opacity():
     scroll_area.setStyleSheet(f"font-size: {OVERLAY_FONT_SIZE}px;background-color: rgba( 0, 0, 0, {OVERLAY_OPACITY}%  ); color: white;" );
 
 
-def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None) -> List[dict]:
+def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None):
     # Compile regex pattern
     #  pattern = re.compile(r"\[(?P<log_time_str>.*?)\] (?P<character>.*?)\|r attacked (?P<receiver>.*?)\|r using.*\|cffff0000\-(?P<total>\d+)")
-    pattern = re.compile(r"\[(?P<log_time_str>.*?)\] (?P<character>.*?)\|r.*?[对|攻击了](?P<receiver>.*?)\|r.*?[造成\|cffff0000|受到了\|cffff0000]\-(?P<total>\d+)")
+    pattern = re.compile(r"<(?P<log_time_str>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?P<character>.*?)\|r.*?[对|攻击了](?P<receiver>.*?)\|r.*?[造成\|cffff0000|受到了\|cffff0000]\-(?P<total>\d+)")
     #[03/09/23 21:04:56] Aono|r attacked Aust Raider|r using |cff25fcffAntithesis|r and caused |cffff0000-13189|r |cffff0000Health|r (|cffff0000Critical damage!|r)!
     #[03/12/23 15:56:50] Catsama|r用|cff25fcff地狱长枪：烈焰|r对扒手|r造成|cffff0000-3903|r|cffff0000生命值|r|cffff0000伤害|r伤害。
 
@@ -279,8 +293,8 @@ def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: 
             if not target_name or receiver == target_name
         )
 
-def extract_heal_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None) -> List[dict]:
-    pattern = re.compile(r"\[(?P<log_time_str>.*?)\] (?P<character>.*?)\|r对(?P<receiver>.*?)\|r使用.*\|cff25fcff(?P<ability>[^|]+)\|r.*恢复了\|.*cff00ff00(?P<total>\d+)")
+def extract_heal_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None):
+    pattern = re.compile(r"<(?P<log_time_str>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\|r对(?P<receiver>.*?)\|r使用.*\|cff25fcff(?P<ability>[^|]+)\|r.*恢复了\|.*cff00ff00(?P<total>\d+)")
 
     # Calculate time range
     minutes_ago_time = timedelta(minutes=minutes_ago)
