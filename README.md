@@ -1,8 +1,5 @@
-support me
-buy me a coffe ☕
-https://bmc.link/Xizde
-
 # ArcheRage Damage/Heal Meter Overlay
+If you like this, please buy me a coffe ☕ https://bmc.link/Xizde
 
 ![aesthetic overlay image](https://user-images.githubusercontent.com/126599430/222024598-1bf74aa2-4f6d-4d37-a9ed-c1d14f083727.png)
 ![simple-overlay-img](https://user-images.githubusercontent.com/126599430/222258783-9e967a10-9139-4e26-abb7-768d38f455e2.png)
@@ -65,3 +62,5 @@ This project is licensed under the MIT License.
 ### Contact
 
 If you have any questions or feedback, please contact Xizde#8742 at Discord.
+
+
