@@ -289,7 +289,7 @@ def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: 
             for match in [pattern.search(line)]
             if match
             for log_time_str, character, receiver, total in [match.groups()]
-            if start_time <= datetime.strptime(log_time_str, "%m/%d/%y %H:%M:%S") <= end_time
+            if start_time <= datetime.strptime(log_time_str, "%Y-%m-%d %H:%M:%S") <= end_time
             if not target_name or receiver == target_name
         )
 
@@ -312,7 +312,7 @@ def extract_heal_data(log_file_path: str, minutes_ago: int = 60, target_name: Op
             for match in [pattern.search(line)]
             if match
             for log_time_str, character, receiver, _, total in [match.groups()]
-            if start_time <= datetime.strptime(log_time_str, "%m/%d/%y %H:%M:%S",) <= end_time
+            if start_time <= datetime.strptime(log_time_str, "%Y-%m-%d %H:%M:%S",) <= end_time
             if not target_name or receiver == target_name
         )
 
