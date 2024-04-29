@@ -294,7 +294,7 @@ def extract_attack_data(log_file_path: str, minutes_ago: int = 60, target_name: 
         )
 
 def extract_heal_data(log_file_path: str, minutes_ago: int = 60, target_name: Optional[str] = None):
-    pattern = re.compile(r"<(?P<log_time_str>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\|r对(?P<receiver>.*?)\|r使用.*\|cff25fcff(?P<ability>[^|]+)\|r.*恢复了\|.*cff00ff00(?P<total>\d+)")
+    pattern = re.compile(r"<(?P<log_time_str>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})(?P<character>.*?)\|r对(?P<receiver>.*?)\|r使用.*\|cff25fcff(?P<ability>[^|]+)\|r.*恢复了\|.*cff00ff00(?P<total>\d+)")
 
     # Calculate time range
     minutes_ago_time = timedelta(minutes=minutes_ago)
